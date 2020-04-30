@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:githubtrending/blocs/TrendingBloc.dart';
 import 'package:githubtrending/model/ItemTrending.dart';
 import 'package:githubtrending/network/Response.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class TrendingView extends StatefulWidget {
   @override
@@ -39,7 +41,7 @@ class _TrendingState extends State<TrendingView> {
                   return Loading(loadingMessage: snapshot.data.message);
                   break;
                 case Status.COMPLETED:
-                  return TrendingListView(trendingList: snapshot.data.data);
+                  return TrendingListView(trending: snapshot.data.data);
                   break;
                 case Status.ERROR:
                   return Error(
@@ -64,9 +66,9 @@ class _TrendingState extends State<TrendingView> {
 }
 
 class TrendingListView extends StatelessWidget {
-  final Trending trendingList;
+  final Trending trending;
 
-  const TrendingListView({Key key, this.trendingList}) : super(key: key);
+  const TrendingListView({Key key, this.trending}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -80,35 +82,121 @@ class TrendingListView extends StatelessWidget {
                 vertical: 1.0,
               ),
               child: InkWell(
-                  /*onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                  },*/
-                  child: SizedBox(
-                    height: 65,
-                    child: Container(
+                onTap: () => Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text(trending.listTrending[index].description),
+                )),
+                child: SizedBox(
+                  height: 65,
+                  child: Container(
                       color: Color(0xFF333333),
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(4, 0, 0, 0),
-                        child: Text(
-                          trendingList.listTrending[index].name,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w100,
-                              fontFamily: 'Roboto'),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                    ),
-                  )));
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: <Widget>[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: FadeInImage.memoryNetwork(
+                                width: 50,
+                                height: 50,
+                                placeholder: kTransparentImage,
+                                image: trending.listTrending[index].avatar
+                                    .toString()),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                Text(
+                                  trending.listTrending[index].author,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'Roboto'),
+                                  textAlign: TextAlign.left,
+                                ),
+                                Text(
+                                  trending.listTrending[index].name,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w100,
+                                      fontFamily: 'Roboto'),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )),
+                ),
+              ));
         },
-        itemCount: trendingList.listTrending.length,
+        itemCount: trending.listTrending.length,
         shrinkWrap: true,
         physics: ClampingScrollPhysics(),
       ),
     );
+  }
+}
+
+class ExpandedSection extends StatefulWidget {
+  final Widget child;
+  final bool expand;
+
+  ExpandedSection({this.expand = false, this.child});
+
+  @override
+  _ExpandedSectionState createState() => _ExpandedSectionState();
+}
+
+class _ExpandedSectionState extends State<ExpandedSection>
+    with SingleTickerProviderStateMixin {
+  AnimationController expandController;
+  Animation<double> animation;
+
+  @override
+  void initState() {
+    super.initState();
+    prepareAnimations();
+    _runExpandCheck();
+  }
+
+  ///Setting up the animation
+  void prepareAnimations() {
+    expandController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    animation = CurvedAnimation(
+      parent: expandController,
+      curve: Curves.fastOutSlowIn,
+    );
+  }
+
+  void _runExpandCheck() {
+    if (widget.expand) {
+      expandController.forward();
+    } else {
+      expandController.reverse();
+    }
+  }
+
+  @override
+  void didUpdateWidget(ExpandedSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _runExpandCheck();
+  }
+
+  @override
+  void dispose() {
+    expandController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+        axisAlignment: 1.0, sizeFactor: animation, child: widget.child);
   }
 }
 

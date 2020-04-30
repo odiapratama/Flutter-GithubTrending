@@ -1,4 +1,4 @@
-package com.problemsolver.githubtrending
+package com.problemsolver.fluttergithubtrending
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

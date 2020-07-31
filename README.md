@@ -2,6 +2,11 @@
 
 A new Flutter application.
 
+## Previews
+<p align="center">
+<img src="/preview/preview1.gif" width="32%"/>
+</p>
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
